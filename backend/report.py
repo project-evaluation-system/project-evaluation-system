@@ -3,7 +3,7 @@ from io import BytesIO
 
 import xlsxwriter
 
-from criteria import header
+from criteria import CRITERIA, header
 
 AUTHOR = "Офлайн-агрегатор оценок"
 
@@ -62,8 +62,37 @@ def write_advice_sheet(book, rating, formats):
     sheet.set_column(2, 2, 80)
 
 
+def write_scores_sheet(book, sheets, formats):
+    """Исходные баллы всех экспертов: чтобы можно было сверить расчёт вручную."""
+    sheet = book.add_worksheet("Оценки экспертов")
+    heads = ["Эксперт", "Файл", "ФИО участника"]
+    heads += [header(short, max_score) for short, _, max_score, _ in CRITERIA]
+    heads.append("Сумма")
+    for col, text in enumerate(heads):
+        sheet.write(0, col, text, formats["head"])
+
+    row = 1
+    for expert_sheet in sheets:
+        for item in expert_sheet["rows"]:
+            sheet.write(row, 0, expert_sheet["expert"], formats["cell"])
+            sheet.write(row, 1, expert_sheet["file"], formats["cell"])
+            sheet.write(row, 2, item["fio"], formats["cell"])
+            for j, (short, _, _, _) in enumerate(CRITERIA):
+                sheet.write(row, 3 + j, item["scores"][short], formats["center"])
+            sheet.write(row, 3 + len(CRITERIA), sum(item["scores"].values()), formats["center_bold"])
+            row += 1
+
+    sheet.autofilter(0, 0, max(row - 1, 1), len(heads) - 1)
+    sheet.freeze_panes(1, 3)
+    sheet.set_row(0, 60)
+    sheet.set_column(0, 0, 22)
+    sheet.set_column(1, 1, 28)
+    sheet.set_column(2, 2, 32)
+    sheet.set_column(3, len(heads) - 1, 13)
+
+
 def build_report(rating, sheets):
-    """Итоговый отчёт в xlsx: рейтинг и советы (оценки экспертов добавим отдельным шагом)."""
+    """Собирает итоговый отчёт: рейтинг, советы на будущее и исходные оценки экспертов."""
     output = BytesIO()
     book = xlsxwriter.Workbook(output, {"in_memory": True})
     book.set_properties({"title": "Итоговый рейтинг", "author": AUTHOR})
@@ -74,6 +103,7 @@ def build_report(rating, sheets):
                                  "bg_color": "#E4F0FF", "border": 1}),
         "cell": book.add_format({"border": 1}),
         "center": book.add_format({"border": 1, "align": "center"}),
+        "center_bold": book.add_format({"border": 1, "align": "center", "bold": True}),
         "number": book.add_format({"border": 1, "align": "center", "num_format": "0.00"}),
         "number_bold": book.add_format({"border": 1, "align": "center", "num_format": "0.00", "bold": True}),
         "wrap": book.add_format({"border": 1, "text_wrap": True, "valign": "top"}),
@@ -81,6 +111,7 @@ def build_report(rating, sheets):
 
     write_rating_sheet(book, rating, formats)
     write_advice_sheet(book, rating, formats)
+    write_scores_sheet(book, sheets, formats)
 
     book.close()
     return output.getvalue()
