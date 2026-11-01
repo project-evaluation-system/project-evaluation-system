@@ -7,9 +7,72 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="logo">
+                <span class="logo-box">ИС</span>
+                <span class="logo-text">Инженерная школа</span>
+            </div>
+            <div class="topbar-info">
+                <span class="topbar-title">Офлайн-агрегатор оценок</span>
+                <span class="topbar-stage">Этап 1</span>
+            </div>
+        </div>
+    </header>
+
     <main>
-        <h1>Офлайн-агрегатор оценок</h1>
-        <p>Загрузите от 2 до 5 файлов экспертов. Приложение проверит баллы и сформирует итоговый рейтинг.</p>
+        <section id="screen-upload">
+            <h1>Офлайн-агрегатор оценок</h1>
+            <p class="subtitle">Загрузите от 2 до 5 файлов экспертов. Приложение проверит баллы и сформирует итоговый рейтинг.</p>
+
+            <div class="layout">
+                <div class="column">
+                    <div class="card">
+                        <h2>1. Шаблон для жюри</h2>
+                        <p class="card-text">Раздайте экспертам шаблон Excel. В нём 12 критериев, максимум 45 баллов.</p>
+                        <a class="btn btn-secondary" href="/download-template">Скачать шаблон для жюри</a>
+                    </div>
+
+                    <div class="card">
+                        <h2>2. Файлы экспертов</h2>
+                        <div id="dropzone" class="dropzone">
+                            <p>Перетащите файлы сюда или</p>
+                            <button type="button" id="pick-button" class="btn btn-primary">Выбрать файлы</button>
+                            <input type="file" id="file-input" accept=".xlsx" multiple hidden>
+                        </div>
+                        <p class="hint">Только .xlsx, от 2 до 5 файлов</p>
+                        <ul id="file-list" class="file-list"></ul>
+                        <p id="counter" class="counter">Выбрано файлов: 0 (нужно от 2 до 5)</p>
+                    </div>
+                </div>
+
+                <aside class="card requirements">
+                    <h2>Требования к файлам</h2>
+                    <div class="req-item">
+                        <strong>Формат</strong>
+                        <span>XLSX</span>
+                    </div>
+                    <div class="req-item">
+                        <strong>Структура</strong>
+                        <span>Шаблон для жюри</span>
+                    </div>
+                    <div class="req-item">
+                        <strong>Баллы</strong>
+                        <span>Целые, не выше максимума критерия</span>
+                    </div>
+                    <div class="info-block">
+                        После загрузки система проверит все файлы и покажет ошибки до расчёта рейтинга
+                    </div>
+                </aside>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="calc-button" class="btn btn-primary" disabled>Рассчитать рейтинг</button>
+            </div>
+            <p id="upload-message" class="alert alert-err" hidden></p>
+        </section>
     </main>
+
+    <script src="/static/app.js"></script>
 </body>
 </html>
