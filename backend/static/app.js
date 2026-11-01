@@ -17,6 +17,7 @@ const counter = document.getElementById('counter');
 const calcButton = document.getElementById('calc-button');
 const uploadMessage = document.getElementById('upload-message');
 const resultsMeta = document.getElementById('results-meta');
+const resultsMessage = document.getElementById('results-message');
 const resultsWarnings = document.getElementById('results-warnings');
 const resultsBody = document.getElementById('results-body');
 const adviceList = document.getElementById('advice-list');
@@ -58,6 +59,34 @@ function showScreen(name) {
 function showUploadMessage(text) {
     uploadMessage.textContent = text;
     uploadMessage.hidden = !text;
+}
+
+function showMessage(element, text) {
+    element.textContent = text;
+    element.hidden = !text;
+}
+
+function saveBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+}
+
+async function errorText(response) {
+    try {
+        const data = await response.json();
+        if (data.errors) {
+            return data.errors.join(' ');
+        }
+    } catch (error) {
+        // ответ не JSON, покажем общий текст
+    }
+    return 'Не удалось получить файл. Попробуйте ещё раз.';
 }
 
 function renderFiles() {
@@ -226,6 +255,7 @@ function renderErrors(data) {
 function resetFiles() {
     files = [];
     showUploadMessage('');
+    showMessage(resultsMessage, '');
     renderFiles();
     showScreen('upload');
 }
@@ -282,6 +312,41 @@ calcButton.addEventListener('click', async () => {
 
     calcButton.textContent = 'Рассчитать рейтинг';
     renderFiles();
+});
+
+document.getElementById('report-button').addEventListener('click', async () => {
+    const body = new FormData();
+    files.forEach((file) => body.append('files', file));
+    showMessage(resultsMessage, '');
+    try {
+        const response = await fetch('/generate-report/', { method: 'POST', body });
+        if (response.ok) {
+            saveBlob(await response.blob(), 'Итоговый_рейтинг.xlsx');
+        } else {
+            showMessage(resultsMessage, await errorText(response));
+        }
+    } catch (error) {
+        showMessage(resultsMessage, NETWORK_ERROR);
+    }
+});
+
+document.getElementById('template-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const message = document.getElementById('template-message');
+    showMessage(message, '');
+    try {
+        const response = await fetch('/download-template', {
+            method: 'POST',
+            body: new FormData(event.target),
+        });
+        if (response.ok) {
+            saveBlob(await response.blob(), 'Шаблон_оценки_жюри.xlsx');
+        } else {
+            showMessage(message, await errorText(response));
+        }
+    } catch (error) {
+        showMessage(message, NETWORK_ERROR);
+    }
 });
 
 document.getElementById('reset-button').addEventListener('click', resetFiles);
