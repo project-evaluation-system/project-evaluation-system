@@ -71,6 +71,50 @@
             </div>
             <p id="upload-message" class="alert alert-err" hidden></p>
         </section>
+
+        <section id="screen-results" hidden>
+            <div class="page-head">
+                <div>
+                    <h1>Итоговый рейтинг</h1>
+                    <p id="results-meta" class="subtitle"></p>
+                </div>
+                <div class="head-actions">
+                    <button type="button" id="reset-button" class="btn btn-secondary">Загрузить другие файлы</button>
+                </div>
+            </div>
+
+            <div id="results-warnings" class="alert alert-warn" hidden></div>
+
+            <div class="card table-card">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Место</th>
+                            <th>ФИО участника</th>
+                            <th>Итоговый балл</th>
+                            <th>Экспертов</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-body"></tbody>
+                </table>
+            </div>
+
+            <div class="card advice-card">
+                <h2>Советы на будущее</h2>
+                <div id="advice-list"></div>
+            </div>
+        </section>
+
+        <section id="screen-errors" hidden>
+            <h1>Найдены ошибки в файлах</h1>
+            <p class="subtitle">Исправьте файлы и загрузите их заново. Рейтинг не рассчитан.</p>
+            <div id="errors-box" class="alert alert-err"></div>
+            <div id="errors-warnings" class="alert alert-warn" hidden></div>
+            <div class="actions">
+                <button type="button" id="retry-button" class="btn btn-primary">Загрузить файлы заново</button>
+            </div>
+        </section>
     </main>
 
     <script src="/static/app.js"></script>
