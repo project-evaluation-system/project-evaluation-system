@@ -1,0 +1,12 @@
+body {
+    margin: 0;
+    background: #F2F7FC;
+    color: #17234B;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
