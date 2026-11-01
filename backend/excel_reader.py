@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from criteria import CRITERIA, normalize
+from criteria import CRITERIA, MAX_TOTAL, normalize
 
 MAX_SIZE = 5 * 1024 * 1024
 HEADER_SEARCH_ROWS = 15
@@ -49,20 +49,50 @@ def find_value_right(table, header_row, label):
     return ""
 
 
-def read_rows(table, header_row, fio_col, columns, comment_col):
+def format_number(number):
+    if number == int(number):
+        return str(int(number))
+    return str(number).replace(".", ",")
+
+
+def read_rows(filename, table, header_row, fio_col, columns, comment_col):
     rows = []
+    errors = []
+    seen = set()
     for row in range(header_row + 1, len(table)):
         fio = table.iat[row, fio_col]
         if pd.isna(fio) or not str(fio).strip():
             continue
+        fio = str(fio).strip()
+        if normalize(fio) in seen:
+            message = f"В файле «{filename}» участник «{fio}» встречается несколько раз."
+            if message not in errors:
+                errors.append(message)
+            continue
+        seen.add(normalize(fio))
+
+        who = f"В файле «{filename}» у участника «{fio}»"
         scores = {}
-        for short, col in columns.items():
-            scores[short] = to_number(table.iat[row, col])
+        for short, _, max_score, _ in CRITERIA:
+            value = table.iat[row, columns[short]]
+            if pd.isna(value) or not str(value).strip():
+                errors.append(f"{who} не заполнен критерий «{short}».")
+                continue
+            number = to_number(value)
+            if number is None:
+                errors.append(f"{who} балл по критерию «{short}»: «{value}», а нужно число.")
+                continue
+            scores[short] = number
+            if not 0 <= number <= max_score:
+                errors.append(f"{who} балл по критерию «{short}» = {format_number(number)} (максимум {max_score}).")
+        if len(scores) == len(CRITERIA) and sum(scores.values()) > MAX_TOTAL:
+            errors.append(f"{who} сумма баллов = {format_number(sum(scores.values()))} (максимум {MAX_TOTAL}).")
+
         comment = ""
         if comment_col is not None and not pd.isna(table.iat[row, comment_col]):
             comment = str(table.iat[row, comment_col]).strip()
-        rows.append({"fio": str(fio).strip(), "scores": scores, "comment": comment})
-    return rows
+        rows.append({"fio": fio, "scores": scores, "comment": comment})
+    return rows, errors
 
 
 def read_expert_file(filename, content):
@@ -102,10 +132,16 @@ def read_expert_file(filename, content):
             comment_col = col
             break
 
+    rows, errors = read_rows(filename, table, header_row, fio_col, columns, comment_col)
+    if not rows and not errors:
+        errors.append(f"В файле «{filename}» нет ни одного оценённого участника.")
+    if errors:
+        return None, errors
+
     sheet = {
         "file": filename,
         "expert": find_value_right(table, header_row, "фио эксперта") or Path(filename).stem,
         "section": find_value_right(table, header_row, "секция"),
-        "rows": read_rows(table, header_row, fio_col, columns, comment_col),
+        "rows": rows,
     }
     return sheet, []
