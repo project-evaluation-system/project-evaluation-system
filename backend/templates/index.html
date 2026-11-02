@@ -7,9 +7,130 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="logo">
+                <span class="logo-box">ИС</span>
+                <span class="logo-text">Инженерная школа</span>
+            </div>
+            <div class="topbar-info">
+                <span class="topbar-title">Офлайн-агрегатор оценок</span>
+                <span class="topbar-stage">Этап 1</span>
+            </div>
+        </div>
+    </header>
+
     <main>
-        <h1>Офлайн-агрегатор оценок</h1>
-        <p>Загрузите от 2 до 5 файлов экспертов. Приложение проверит баллы и сформирует итоговый рейтинг.</p>
+        <section id="screen-upload">
+            <h1>Офлайн-агрегатор оценок</h1>
+            <p class="subtitle">Загрузите от 2 до 5 файлов экспертов. Приложение проверит баллы и сформирует итоговый рейтинг.</p>
+
+            <div class="layout">
+                <div class="column">
+                    <div class="card">
+                        <h2>1. Шаблон для жюри</h2>
+                        <p class="card-text">Раздайте экспертам шаблон Excel. В нём 12 критериев, максимум 45 баллов.</p>
+                        <a class="btn btn-secondary" href="/download-template">Скачать шаблон для жюри</a>
+
+                        <details class="template-details">
+                            <summary>Шаблон со списком участников</summary>
+                            <form id="template-form" class="template-form">
+                                <label for="template-section">Секция</label>
+                                <input type="text" id="template-section" name="section" autocomplete="off">
+                                <label for="template-participants">ФИО участников (по одному в строке)</label>
+                                <textarea id="template-participants" name="participants" rows="6"></textarea>
+                                <button type="submit" class="btn btn-secondary">Скачать шаблон со списком</button>
+                                <p id="template-message" class="alert alert-err" hidden></p>
+                            </form>
+                        </details>
+                    </div>
+
+                    <div class="card">
+                        <h2>2. Файлы экспертов</h2>
+                        <div id="dropzone" class="dropzone">
+                            <p>Перетащите файлы сюда или</p>
+                            <button type="button" id="pick-button" class="btn btn-primary">Выбрать файлы</button>
+                            <input type="file" id="file-input" accept=".xlsx" multiple hidden>
+                        </div>
+                        <p class="hint">Только .xlsx, от 2 до 5 файлов</p>
+                        <ul id="file-list" class="file-list"></ul>
+                        <p id="counter" class="counter">Выбрано файлов: 0 (нужно от 2 до 5)</p>
+                    </div>
+                </div>
+
+                <aside class="card requirements">
+                    <h2>Требования к файлам</h2>
+                    <div class="req-item">
+                        <strong>Формат</strong>
+                        <span>XLSX</span>
+                    </div>
+                    <div class="req-item">
+                        <strong>Структура</strong>
+                        <span>Шаблон для жюри</span>
+                    </div>
+                    <div class="req-item">
+                        <strong>Баллы</strong>
+                        <span>Целые, не выше максимума критерия</span>
+                    </div>
+                    <div class="info-block">
+                        После загрузки система проверит все файлы и покажет ошибки до расчёта рейтинга
+                    </div>
+                </aside>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="calc-button" class="btn btn-primary" disabled>Рассчитать рейтинг</button>
+            </div>
+            <p id="upload-message" class="alert alert-err" hidden></p>
+        </section>
+
+        <section id="screen-results" hidden>
+            <div class="page-head">
+                <div>
+                    <h1>Итоговый рейтинг</h1>
+                    <p id="results-meta" class="subtitle"></p>
+                </div>
+                <div class="head-actions">
+                    <button type="button" id="report-button" class="btn btn-primary">Скачать итоговый отчёт</button>
+                    <button type="button" id="reset-button" class="btn btn-secondary">Загрузить другие файлы</button>
+                </div>
+            </div>
+
+            <p id="results-message" class="alert alert-err" hidden></p>
+            <div id="results-warnings" class="alert alert-warn" hidden></div>
+
+            <div class="card table-card">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Место</th>
+                            <th>ФИО участника</th>
+                            <th>Итоговый балл</th>
+                            <th>Экспертов</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-body"></tbody>
+                </table>
+            </div>
+
+            <div class="card advice-card">
+                <h2>Советы на будущее</h2>
+                <div id="advice-list"></div>
+            </div>
+        </section>
+
+        <section id="screen-errors" hidden>
+            <h1>Найдены ошибки в файлах</h1>
+            <p class="subtitle">Исправьте файлы и загрузите их заново. Рейтинг не рассчитан.</p>
+            <div id="errors-box" class="alert alert-err"></div>
+            <div id="errors-warnings" class="alert alert-warn" hidden></div>
+            <div class="actions">
+                <button type="button" id="retry-button" class="btn btn-primary">Загрузить файлы заново</button>
+            </div>
+        </section>
     </main>
+
+    <script src="/static/app.js"></script>
 </body>
 </html>
